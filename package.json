@@ -1,0 +1,23 @@
+{
+  "name": "sim-captcha",
+  "version": "0.0.1",
+  "description": "JavaScript implementation of SimCaptcha frontend.",
+  "main": "dist/sim-captcha.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yiyungent/sim-captcha-js.git"
+  },
+  "keywords": [
+    "sim-cordova"
+  ],
+  "author": "yiyun",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yiyungent/sim-captcha-js/issues"
+  },
+  "homepage": "https://github.com/yiyungent/sim-captcha-js#readme",
+  "dependencies": {}
+}
