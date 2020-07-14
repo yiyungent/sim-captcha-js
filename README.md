@@ -8,6 +8,7 @@
 [![repo size](https://img.shields.io/github/repo-size/yiyungent/sim-captcha-js.svg?style=flat)]()
 [![LICENSE](https://img.shields.io/github/license/yiyungent/sim-captcha-js.svg?style=flat)](https://github.com/yiyungent/sim-captcha-js/blob/master/LICENSE)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyiyungent%2Fsim-captcha-js.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyiyungent%2Fsim-captcha-js?ref=badge_shield)
+[![NPM version](https://img.shields.io/npm/v/sim-captcha.svg)](https://www.npmjs.com/package/sim-captcha)
 
 
 [English](README_en.md)
@@ -21,7 +22,6 @@
 ## 截图
 
 <img src="docs/_images/demo1.gif">
-<img src="docs/_images/demo2.gif">
 
 ## 安装
 
@@ -29,15 +29,9 @@
 PM> npm install sim-captcha
 ```
 
-## 快速开始
-
-```javascript
-
-```
-
 ## 使用
 
-- [详细文档(/docs)](https://yiyungent.github.io/sim-captcha-js "在线文档")
+- [详细文档(/docs)](https://yiyungent.github.io/sim-captcha-js "在线文档") 构建中
 
 ## 相关项目
 
