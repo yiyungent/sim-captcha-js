@@ -8,7 +8,6 @@
 	<title>sim-captcha</title>
 	<!-- Bootstrap -->
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-	<link href="css/sim-captcha.css" rel="stylesheet" />
 </head>
 
 <body>
@@ -38,12 +37,12 @@
 	<script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
 	<!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
-	<script src="js/sim-captcha.js"></script>
+	<script src="/dist/sim-captcha.js"></script>
 	<script>
 		$(function () {
 
 			// 点击验证
-			window.simCaptcha = new SimCaptcha(
+			var simCaptcha = new SimCaptcha(
 				document.getElementById("js-btn-verify"),
 				'132132',
 				function (res) {
@@ -60,7 +59,7 @@
 					}
 				}
 			)
-			window.simCaptcha.setUrl("https://localhost:5003/api/vCode/VCodeImg", "https://localhost:5003/api/vCode/VCodeCheck");
+			simCaptcha.setUrl("https://captcha.moeci.com/api/vCode/VCodeImg", "https://captcha.moeci.com/api/vCode/VCodeCheck");
 
 			$("#js-btn-login").click(function () {
 				// 获取用户名(手机号/邮箱), 密码, 票据

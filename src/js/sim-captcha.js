@@ -569,7 +569,7 @@
 	//========
 	// BROWSER
 	//========
-	else if (typeof window !== 'undefined') {
+	if (typeof window !== 'undefined') {
 		window.SimCaptcha = SimCaptcha;
 	}
 	//===========
