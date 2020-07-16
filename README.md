@@ -1,9 +1,9 @@
 <p align="center">
-<img src="docs/_images/demo1.gif" alt="sim-captcha-js">
+<img src="docs/_images/logo.png" alt="sim-captcha-js">
 </p>
 <h1 align="center">sim-captcha-js</h1>
 
-> :cake: 一个简单易用的点触验证码
+> :cake: 一个简单易用的点触验证码, SimCaptcha 前端的 JavaScript 实现
 
 [![repo size](https://img.shields.io/github/repo-size/yiyungent/sim-captcha-js.svg?style=flat)]()
 [![LICENSE](https://img.shields.io/github/license/yiyungent/sim-captcha-js.svg?style=flat)](https://github.com/yiyungent/sim-captcha-js/blob/master/LICENSE)
@@ -31,7 +31,7 @@ PM> npm install sim-captcha
 
 ## 使用
 
-- [详细文档(/docs)](https://yiyungent.github.io/sim-captcha-js "在线文档") 构建中
+- [详细文档(/docs)](https://yiyungent.github.io/SimCaptcha "在线文档") 构建中
 
 ## 相关项目
 
