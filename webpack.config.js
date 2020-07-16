@@ -54,7 +54,7 @@ module.exports = {
     historyApiFallback: true,
     noInfo: true,
     overlay: true,
-    contentBase: "./src",
+    // contentBase: "",
   },
   performance: {
     hints: false

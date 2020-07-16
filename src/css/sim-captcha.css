@@ -180,7 +180,7 @@
     background-color: transparent;
     outline: none;
     color: gray;
-    font-family: "iconfont";
+    font-family: "sim-captcha-iconfont";
 }
 #simCaptcha-btn-refresh {
     height:32px;
@@ -191,7 +191,7 @@
     background-color: transparent;
     outline: none;
     color: gray;
-    font-family: "iconfont";
+    font-family: "sim-captcha-iconfont";
 }
 #simCaptcha-btn-confirm {
     float: right;
