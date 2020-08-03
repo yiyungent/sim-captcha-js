@@ -395,7 +395,8 @@ function init() {
 						<div id="simCaptcha-layer" class="simCaptcha-hidden" >\
 							<div id="simCaptcha-vCodeTip"></div>\
 							<div id="simCaptcha-img-box">\
-								<img id="simCaptcha-img" />\
+                <img id="simCaptcha-img" />\
+                <div id="simCaptcha-loading">加载中...</div>\
 								<div id="simCaptcha-marks"></div>\
 								<span id="simCaptcha-errorTip"></span>\
 							</div>\
