@@ -21,7 +21,7 @@
 
 ## 在线演示
 
-- https://captcha-client.moeci.com/index.html
+- http://captcha-client.moeci.com/index.html
   - 仅供演示, 不稳定, 且非最新版, SSL证书链尚不完整，可能在手机浏览器异常
 
 ## 安装
