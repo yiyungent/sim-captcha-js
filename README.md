@@ -22,7 +22,8 @@
 ## 在线演示
 
 - http://captcha-client.moeci.com/index.html
-  - 仅供演示, 不稳定, 且非最新版, SSL证书链尚不完整，可能在手机浏览器异常
+  - 仅供演示, 不稳定, 且非最新版
+  - 用户名，密码 均为 admin
 
 ## 安装
 
