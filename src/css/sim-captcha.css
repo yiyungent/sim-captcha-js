@@ -145,9 +145,11 @@
   background-color: #539ffe;
   color: #fff;
   text-align: center;
-  line-height: 25px;
+  /* line-height: 25px; */
+  line-height: 22px;
   border-radius: 50%;
-  border: 2px solid #fff;
+  /* border: 2px solid #fff; */
+  border: 3px solid #fff;
   box-sizing: border-box;
   box-shadow: 0 0 10px black;
   /* 防止被选中 */
