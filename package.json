@@ -1,6 +1,6 @@
 {
   "name": "sim-captcha",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "JavaScript implementation of SimCaptcha frontend.",
   "main": "dist/sim-captcha.js",
   "scripts": {
