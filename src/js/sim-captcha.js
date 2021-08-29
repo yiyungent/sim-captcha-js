@@ -423,6 +423,17 @@ function init() {
   document.getElementById("simCaptcha-img").onclick = imgClick;
 }
 
+String.prototype.format = function () {
+  var args = arguments;
+  return this.replace(/\{(\d+)\}/g, function (s, i) {
+    return args[i];
+  });
+};
+
+/**
+ * 导出的 SimCaptcha
+ * @param {*} options 
+ */
 function SimCaptcha(options) {
   this.options = handleOption(options);
 
@@ -465,43 +476,5 @@ SimCaptcha.prototype = {
   },
 };
 
-String.prototype.format = function () {
-  var args = arguments;
-  return this.replace(/\{(\d+)\}/g, function (s, i) {
-    return args[i];
-  });
-};
-
-//===========================================================================
-
-//======
-// NODE
-//======
-if (typeof exports !== "undefined") {
-  if (typeof module !== "undefined" && module.exports) {
-    exports = module.exports = SimCaptcha;
-  }
-  exports.StateMachine = SimCaptcha;
-}
-//============
-// AMD/REQUIRE
-//============
-else if (typeof define === "function" && define.amd) {
-  define(function (require) {
-    return SimCaptcha;
-  });
-}
-//========
-// BROWSER
-//========
-if (typeof window !== "undefined") {
-  window.SimCaptcha = SimCaptcha;
-}
-//===========
-// WEB WORKER
-//===========
-else if (typeof self !== "undefined") {
-  self.SimCaptcha = SimCaptcha;
-}
 
 export default SimCaptcha;

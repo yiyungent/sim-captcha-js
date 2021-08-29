@@ -1,16 +1,23 @@
 var path = require('path')
-var webpack = require('webpack')
+const TerserPlugin = require("terser-webpack-plugin");
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+
+// 目前配置: css, fonts, 小图等会被打包到一个 js 中, js 混淆压缩，去除注释, css不会去除注释
 
 module.exports = {
-  // 根据不同环境走不同入口
+  mode: 'production',
   entry: './src/main.js',
   output: {
+    filename: 'sim-captcha.min.js',
+    library: {
+      name: 'SimCaptcha', // 指定使用require时的模块名, 并且 在浏览器中 使用时, 也将为 SimCaptcha
+      type: 'umd', // 指定输出格式
+    },
+    libraryExport: "default",
+    umdNamedDefine: true, // 会对 UMD 的构建过程中的 AMD 模块进行重命名。否则就使用匿名的 define
     path: path.resolve(__dirname, './dist'),
     publicPath: '/dist/',
-    filename: 'sim-captcha.js',
-    library: 'sim-captcha', // 指定使用require时的模块名
-    libraryTarget: 'umd', // 指定输出格式
-    umdNamedDefine: true // 会对 UMD 的构建过程中的 AMD 模块进行重命名。否则就使用匿名的 define
+    clean: true,
   },
   module: {
     rules: [
@@ -51,14 +58,37 @@ module.exports = {
     extensions: ['*', '.js', '.json']
   },
   devServer: {
-    historyApiFallback: true,
-    noInfo: true,
-    overlay: true,
-    // contentBase: "",
+    contentBase: "./",
   },
-  performance: {
-    hints: false
+  // devtool: '#eval-source-map',
+  optimization: {
+    minimize: true,
+    minimizer: [
+
+      new TerserPlugin({
+        terserOptions: {
+          format: {
+            comments: false,
+          },
+        },
+        extractComments: false,
+      }),
+
+      new CssMinimizerPlugin({
+        minimizerOptions: {
+          preset: [
+            'default',
+            {
+              discardComments: { removeAll: true },
+            },
+          ],
+        },
+      }),
+
+    ],
   },
-  devtool: '#eval-source-map'
+  plugins: [
+    
+  ]
 }
 
