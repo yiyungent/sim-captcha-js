@@ -81,4 +81,103 @@ function removeElement(_element) {
   }
 }
 
-export { httpGet, httpPost, removeElement, getOffsetLeft, getOffsetTop };
+/**
+ * 更新验证码图片src
+ * @param {String} imgSrc 验证码图片的src值
+ */
+function updateImgSrc(imgSrc) {
+  // TODO: DOM: 更新图片src
+  document.getElementById("simCaptcha-img").src = imgSrc;
+}
+
+/**
+ * DOM: 更新验证码提示
+ * @param {String} vCodeTip 验证码提示
+ */
+function updateVCodeTip(vCodeTip) {
+  // TODO: DOM: 更新验证码提示
+  document.getElementById("simCaptcha-vCodeTip").innerText = vCodeTip;
+}
+
+/**
+ * DOM: 更新错误提示
+ * @param {String} errorTip 错误提示
+ */
+function updateErrorTip(errorTip) {
+  // TODO: DOM: 更新错误提示
+  document.getElementById("simCaptcha-errorTip").innerText = errorTip;
+  if (errorTip == "验证通过") {
+    document.getElementById("simCaptcha-errorTip").className =
+      "simCaptcha-errorTip-success simCaptcha-errorTip-up";
+  } else {
+    document.getElementById("simCaptcha-errorTip").className =
+      "simCaptcha-errorTip-fail simCaptcha-errorTip-up";
+    // 验证码层震动
+    document.getElementById("simCaptcha-layer").className = "simCaptcha-shake";
+  }
+  // 1.8秒后向下动画隐藏
+  setTimeout(function () {
+    // 注意: 为了使 错误提示上下css动画, 背景颜色 down时不掉色，所以需要这样做
+    if (errorTip == "验证通过") {
+      document.getElementById("simCaptcha-errorTip").className =
+        "simCaptcha-errorTip-success";
+    } else {
+      document.getElementById("simCaptcha-errorTip").className =
+        "simCaptcha-errorTip-fail";
+      // 验证码层停止震动
+      document.getElementById("simCaptcha-layer").className = "simCaptcha-show";
+    }
+  }, 1800);
+}
+
+/***
+ * 隐藏当前验证码弹出层，下次show 将使用当前验证码图片base64
+ * 用于用户手动点击关闭按钮
+ */
+function hidden() {
+  // TODO: DOM操作 隐藏
+  document.getElementById("simCaptcha-mask").className = "simCaptcha-hidden";
+  document.getElementById("simCaptcha-layer").className = "simCaptcha-hidden";
+}
+
+/**
+ * 像素相对位置 -> 百分比相对位置
+ * @param {Object} pxPos 相对于验证码图片的相对位置(px)
+ * @return {Object} { x: 20, y:40 } (表示x轴20%, y轴40%)
+ */
+function pxToPercentPos(pxPos) {
+  // 即时获取当前验证码图片宽高(像素)
+  var imgSize = getImgSize();
+  var imgWidthPx = imgSize.width;
+  var imgHeightPx = imgSize.height;
+
+  var xPercent = parseInt((pxPos.x / imgWidthPx) * 100);
+  var yPercent = parseInt((pxPos.y / imgHeightPx) * 100);
+
+  return { x: xPercent, y: yPercent };
+}
+
+/**
+ * 即时获取当前验证码图片宽高(像素)
+ * @return {Object} eg:{width: 200, height:200} (px)
+ */
+function getImgSize() {
+  var width = document.getElementById("simCaptcha-img").offsetWidth;
+  var height = document.getElementById("simCaptcha-img").offsetHeight;
+
+  return { width, height };
+}
+
+export {
+  httpGet,
+  httpPost,
+  removeElement,
+  getOffsetLeft,
+  getOffsetTop,
+  updateImgSrc,
+  updateVCodeTip,
+  updateErrorTip,
+  hidden,
+  getImgSize,
+  pxToPercentPos
+};

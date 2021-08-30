@@ -1,3 +1,7 @@
+import pluginClick from "../plugins/click/click";
+import pluginSlider from "../plugins/slider/slider";
+
+
 /*
  * @Author: yiyun
  * @Description:
@@ -9,6 +13,7 @@ export default (options) => {
     appId: options.appId || "",
     imgUrl: options.imgUrl || "/api/SimCaptcha/Img",
     checkUrl: options.checkUrl || "/api/SimCaptcha/Check",
+    plugins: options.plugins || [pluginClick, pluginSlider],
   };
   // 附上默认值
   for (const defaultKey in defaultOption) {

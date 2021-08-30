@@ -14,8 +14,9 @@ var _appId = "";
 // 前端验证成功后，会调用业务传入的回调函数，并在第一个参数中传入回调结果
 var _callback = null;
 
-// 用户点击验证码图片的位置数据 {Array} eg:  [{ x: 12, y: 35 }, { x: 52, y: 35 }, { x: 32, y: 75 }]
-var _vCodePos = [];
+var _plugins = [];
+
+// var _vCodePos = [];
 
 // 验证码服务端 效验url
 var _reqVCodeCheckUrl = "";
@@ -29,12 +30,30 @@ var _resTicket = "";
 // 用户会话唯一标识
 var _resUserId = "";
 // 验证码图片 base64
-var _resVCodeImg = "";
-// 验证码提示 eg: 请依序点击 走 炮 跳
+// var _resVCodeImg = "";
+// 验证码提示: ( 来自 vCodeTip ) eg: 请依序点击 走 炮 跳
 var _resVCodeTip = "";
 
-// 错误提示 eg: 1.点错啦，请重试 2.这题有点难，为你换一个试试吧
+var _resCaptchaType = "";
+
+// 错误提示: ( 来自 message ) eg: 1.点错啦，请重试 2.这题有点难，为你换一个试试吧
 var _errorTip = "";
+
+var _sliderImgResponseData = {
+  captchaType: "slider",
+  userId: "",
+  vCodeTip: "",
+  bgImg: "",
+  sliderImg: "",
+  y: 0, // 固定 y 轴: 用于前端定位滑块 y 轴
+};
+
+var _sliderCheckRequestData = {
+  appId: _appId,
+  userId: _resUserId,
+  trackPoints: [],
+  vCodePos: {}, // 最终滑动停止位置 eg: { x: 12, y: 23 }
+};
 
 /***
  * 隐藏当前验证码弹出层，下次show 将使用当前验证码图片base64
@@ -52,15 +71,17 @@ function hidden() {
 function destroy() {
   // 隐藏当前验证码弹出层
   hidden();
-  // 清除全部点触标记
-  clearPointMark();
-  // 清空点触位置数据
-  _vCodePos = [];
-  // 清除验证码相关数据
-  _resVCodeImg = "";
-  _resVCodeTip = "";
 
-  // 注意: 不清除 _resAppId, _resTicket, 因为通过验证后可能会通过 getTicket() 获取票据, 
+  _plugins.forEach((plugin) => {
+    if (plugin.captchaType == _resCaptchaType) {
+      plugin.destroy();
+    }
+    if (_resCaptchaType == "") {
+      plugin.destroy();
+    }
+  });
+
+  // 注意: 不清除 _resAppId, _resTicket, 因为通过验证后可能会通过 getTicket() 获取票据,
   // 直到下一次通过验证获得票据, _resAppId, _resTicket 才得到更新
   //_resAppId = "";
   //_resTicket = "";
@@ -150,17 +171,17 @@ function clearPointMark() {
 /***
  * 将用户点击验证码的位置数据发送到验证码服务端   (每个位置(x轴, y轴))
  */
-function sendVCodePos() {
-  var ts = Date.now(); // js 13位 毫秒时间戳
-  var verifyInfo = {
-    appId: _appId,
-    vCodePos: _vCodePos,
-    userId: _resUserId,
-    ua: navigator.userAgent,
-    ts: ts,
-  }; // ua, ts 服务端暂时未用，保留。用户花费在此验证码的时间 = 验证码服务端 接收到点击位置数据时间 - 验证码服务端 产生验证码图片时间
+function sendCheck() {
+  var checkInfo = {}; // ua, ts 服务端暂时未用，保留。用户花费在此验证码的时间 = 验证码服务端 接收到点击位置数据时间 - 验证码服务端 产生验证码图片时间
+
+  _plugins.forEach((plugin) => {
+    if (plugin.captchaType == _resCaptchaType) {
+      checkInfo = plugin.getCheck();
+    }
+  });
+
   // 发送ajax到验证码服务端 -> 得到response结果，封装为 res
-  httpPost(_reqVCodeCheckUrl, verifyInfo, function (response) {
+  httpPost(_reqVCodeCheckUrl, checkInfo, function (response) {
     // code: 0: 通过验证
     if (response.code == 0) {
       // 通过验证 -> 1.回调callback（成功回调） 2.销毁验证码弹出层destroy
@@ -181,27 +202,30 @@ function sendVCodePos() {
       // 未通过验证 -> 1.提示用户 2.if(错误次数未达上限)：清空用户点击验证码的位置数据，重置，让用户重新点击 3.else(错误次数达到上限)：刷新验证码弹出层（请求新验证码图片，更新验证码提示）
       // code: -1: 验证码错误 且 错误次数未达上限
       if (response.code == -1) {
-        _errorTip = "点错啦, 请重试";
-        // 清空点触位置数据
-        _vCodePos = [];
-        // 清除图片上的全部点触标记
-        clearPointMark();
+        // _errorTip = "点错啦, 请重试";
+        _errorTip = response.message;
+
+        _plugins.forEach((plugin) => {
+          if (plugin.captchaType == _resCaptchaType) {
+            plugin.clear();
+          }
+        });
       } else if (response.code == -2) {
         // code: -2: 验证码错误 且 错误次数已达上限
         _errorTip = "这题有点难, 为你换一个试试吧";
-        refreshVCode();
+        refresh();
       } else if (response.code == -3) {
         // 验证码无效（被篡改）
         _errorTip = "验证码无效, 为你换一个试试吧";
-        refreshVCode();
+        refresh();
       } else if (response.code == -4) {
         // 验证码过期
         _errorTip = "验证码过期, 为你换一个试试吧";
-        refreshVCode();
+        refresh();
       } else if (response.code == -5) {
         // 验证码无效
         _errorTip = "验证码过期, 为你换一个试试吧";
-        refreshVCode();
+        refresh();
       }
       // 更新错误提示
       updateErrorTip(_errorTip);
@@ -212,33 +236,41 @@ function sendVCodePos() {
 /***
  * 刷新验证码弹出层：1.刷新验证码图片，2.更新验证码提示 3. 清空点触位置数据 4.清空图片上的全部点触标记
  */
-function refreshVCode() {
-  // 清空点触位置数据
-  _vCodePos = [];
-  // 清除图片上的全部点触标记
-  clearPointMark();
-  // ajax请求新的验证码图片base64
+function refresh() {
+  // 由于此次新验证类型 可能和之前不一致，因此，必须先确保清除之前验证类型的效果
+  // 之前的验证类型 刷新
+  _plugins.forEach((plugin) => {
+    if (plugin.captchaType == _resCaptchaType) {
+      plugin.clear();
+    }
+    // 确保刷新
+    if (_resCaptchaType == "") {
+      plugin.clear();
+    }
+  });
+
+  // ajax请求新的验证码
   httpGet(_reqVCodeImgUrl, function (response) {
     if (response.code == 0) {
       // 成功获取新验证码
-      // 保存并更新 验证码图片
-      _resVCodeImg = response.data.vCodeImg;
+      // 记录 新验证类型
+      _resCaptchaType = response.data.captchaType;
+
       // 更新验证码提示
-      _resVCodeTip = response.data.vCodeTip;
+      // _resVCodeTip = response.data.vCodeTip;
       // 保存/更新 用户此次会话唯一标识
-      _resUserId = response.data.userId;
+      // _resUserId = response.data.userId;
     } else {
       // 获取验证码失败
-      _errorTip = response.message;
+      // _errorTip = response.message;
     }
 
-    updateImgSrc();
-    updateVCodeTip();
-    // fixed: 首次弹出验证码层时,震动
-    // fixed: 刷新时显示错误提示
-    // if(_errorTip) {
-    // 	updateErrorTip();
-    // }
+    // 遍历插件 刷新
+    _plugins.forEach((plugin) => {
+      if (plugin.captchaType == _resCaptchaType) {
+        plugin.refresh(response);
+      }
+    });
   });
 }
 
@@ -247,9 +279,10 @@ function refreshVCode() {
  */
 function show() {
   // if(没有验证码数据) 先请求新验证码数据
-  if (_resVCodeImg == "") {
+  // if (_resVCodeImg == "") {
+  if (_resCaptchaType == "") {
     // 请求新验证码数据
-    refreshVCode();
+    refresh();
   }
 
   // TODO: 需DOM操作
@@ -257,133 +290,6 @@ function show() {
   document.getElementById("simCaptcha-mask").className = "simCaptcha-show";
   // 显示验证码弹出层
   document.getElementById("simCaptcha-layer").className = "simCaptcha-show";
-}
-
-/**
- * 验证码图片被点击时
- */
-function imgClick(event) {
-  // console.log(this); // 拿到的是这个 <img />元素
-  var e = event || window.event;
-  // console.log(e); // 图片被点击的事件
-
-  var pxPos = getImgClickPos(this, e);
-  // 在点击处创建点标记
-  createPointMark(pxPos);
-
-  // 记录点击位置数据(转换为 相对于图片的百分比 位置), 放入 _vCodePos
-  var percentPos = pxToPercentPos(pxPos);
-  _vCodePos.push(percentPos);
-}
-
-/**
- * 像素相对位置 -> 百分比相对位置
- * @param {Object} pxPos 相对于验证码图片的相对位置(px)
- * @return {Object} { x: 20, y:40 } (表示x轴20%, y轴40%)
- */
-function pxToPercentPos(pxPos) {
-  // 即时获取当前验证码图片宽高(像素)
-  var imgSize = getImgSize();
-  var imgWidthPx = imgSize.width;
-  var imgHeightPx = imgSize.height;
-
-  var xPercent = parseInt((pxPos.x / imgWidthPx) * 100);
-  var yPercent = parseInt((pxPos.y / imgHeightPx) * 100);
-
-  return { x: xPercent, y: yPercent };
-}
-
-/**
- * 即时获取当前验证码图片宽高(像素)
- * @return {Object} eg:{width: 200, height:200} (px)
- */
-function getImgSize() {
-  var width = document.getElementById("simCaptcha-img").offsetWidth;
-  var height = document.getElementById("simCaptcha-img").offsetHeight;
-
-  return { width, height };
-}
-
-/**
- * 获取点击位置(相对于图片的相对位置)(px)
- * @param obj 事实上始终为验证码图片元素
- * @param event 验证码图被点击的事件
- * @return {Object} { x: 123, y:123 } (px)
- */
-function getImgClickPos(obj, event) {
-  // https://www.cnblogs.com/jiangxiaobo/p/6593584.html
-  // (1)原生js
-  // var clickX = event.clientX + document.body.scrollLeft;// 点击x 相对于整个html文档
-  // var clickY = event.clientY + document.body.scrollTop;// 点击y 相对于整个html文档
-
-  // var objX = getOffsetLeft(obj);// 对象x 相对于整个html文档
-  // var objY = getOffsetTop(obj);// 对象y 相对于整个html文档
-
-  // var xOffset = clickX - objX;
-  // var yOffset = clickY - objY;
-  // // 临时修复位置不正确
-  // xOffset = xOffset + 200 - 10 - 10;
-  // yOffset = yOffset + 200 - 10 - 10;
-
-  // (2)不考虑Firefox
-  var xOffset = event.offsetX;
-  var yOffset = event.offsetY;
-
-  // (3)依赖 jQuery
-  // var xOffset = event.clientX - ($(obj).offset().left - $(window).scrollLeft());;
-  // var yOffset = event.clientY - ($(obj).offset().top - $(window).scrollTop());;
-
-  return { x: xOffset, y: yOffset };
-}
-
-/**
- * 创建点标记
- * @param pos {Object} 相对于图片的位置( { x: 12, y: 56 } ) (单位px)
- */
-function createPointMark(pos) {
-  var num = _vCodePos.length + 1;
-  pos.x = parseInt(pos.x);
-  pos.y = parseInt(pos.y);
-  // TODO: DOM操作 创建点标记
-  var markHtml = '<div id="simCaptcha-mark-{2}" class="simCaptcha-mark" style="left:{0}px;top:{1}px;">{2}</div>'.format(
-    pos.x - 10,
-    pos.y - 10,
-    num
-  );
-
-  var marksElement = document.getElementById("simCaptcha-marks");
-
-  // 方案1
-  // 这样做, 会更新 marks 内的所有 node, 所以导致除最新node，其他mark注册的事件均失效(不是原node了)
-  // marksElement.innerHTML = marksElement.innerHTML + markHtml;
-  // // 遍历下面的所有子节点, 重写注册
-  // marksElement.childNodes.forEach(element => {
-  // 	element.onclick = markClick;
-  // });
-
-  // 方案2
-  // 只是在之后插入新node, 不更新之前已有node
-  marksElement.insertAdjacentHTML("beforeend", markHtml);
-  document.getElementById("simCaptcha-mark-" + num).onclick = markClick;
-}
-
-/**
- * 标记被点击: eg:当前标记序号(1)(2)(3)(4)(5), 点击(3), 移除(3)(4)(5)
- */
-function markClick() {
-  // console.log(this); // 当前被点击标记元素
-  var clickedNum = parseInt(this.innerText);
-  var length = _vCodePos.length;
-  for (var i = clickedNum - 1; i < length; i++) {
-    // 将(clickedNum)及之后的标记html移除
-    var temp = document.getElementById("simCaptcha-mark-" + (i + 1));
-    removeElement(temp);
-
-    // 将vCodePos中 clickedNum及之后的位置数据移除
-    var removePos = _vCodePos.pop();
-
-    // console.log(removePos);
-  }
 }
 
 /**
@@ -397,7 +303,7 @@ function init() {
 							<div id="simCaptcha-img-box">\
                 <img id="simCaptcha-img" />\
                 <div id="simCaptcha-loading">加载中...</div>\
-								<div id="simCaptcha-marks"></div>\
+								<div id="simCaptcha-img-plugin"></div>\
 								<span id="simCaptcha-errorTip"></span>\
 							</div>\
 							<div class="simCaptcha-bottom">\
@@ -416,11 +322,10 @@ function init() {
 
   document.getElementById("simCaptcha-btn-close").onclick = hidden;
 
-  document.getElementById("simCaptcha-btn-refresh").onclick = refreshVCode;
+  document.getElementById("simCaptcha-btn-refresh").onclick = refresh;
 
-  document.getElementById("simCaptcha-btn-confirm").onclick = sendVCodePos;
+  document.getElementById("simCaptcha-btn-confirm").onclick = sendCheck;
 
-  document.getElementById("simCaptcha-img").onclick = imgClick;
 }
 
 String.prototype.format = function () {
@@ -432,7 +337,7 @@ String.prototype.format = function () {
 
 /**
  * 导出的 SimCaptcha
- * @param {*} options 
+ * @param {*} options
  */
 function SimCaptcha(options) {
   this.options = handleOption(options);
@@ -440,6 +345,7 @@ function SimCaptcha(options) {
   _element = this.options.element;
   _appId = this.options.appId;
   _callback = this.options.callback;
+  _plugins = this.options.plugins;
 
   _reqVCodeImgUrl = this.options.imgUrl;
   _reqVCodeCheckUrl = this.options.checkUrl;
@@ -461,6 +367,11 @@ SimCaptcha.prototype = {
   hidden: hidden,
 
   /***
+   * 刷新验证码
+   */
+  refresh: refresh,
+
+  /***
    * 摧毁当前验证码（隐藏验证码弹出层，清除验证码图片base64），下次show 将请求新验证码图片base64
    */
   destroy: destroy,
@@ -471,10 +382,9 @@ SimCaptcha.prototype = {
   getTicket: function () {
     return {
       appId: _resAppId,
-      ticket: _resTicket
+      ticket: _resTicket,
     };
   },
 };
-
 
 export default SimCaptcha;
